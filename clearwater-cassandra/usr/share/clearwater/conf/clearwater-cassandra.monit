@@ -1,11 +1,31 @@
-# Poll every 10 seconds
-set daemon 10
+# Monitor connectivity to Cassandra ring nodes. If connectivity is lost to
+# any node issue an alarm, otherwise clear it (alarm handling is done in
+# the check script to avoid unnecessary retransmissions). Only check every
+# 60 seconds due to overhead of running nodetool.
 
-# Monitor the server's PID file and check its public interfaces.
+check program poll_cassandra_ring with path "/usr/share/clearwater/bin/poll_cassandra_ring.sh"
+
+  every 6 cycles
+
+  if status != 0
+     then alert
+
+
+# Monitor the service's PID file and public interface. Issue an alarm for
+# any restart, and clear upon qualified recovery.
+
 check process cassandra pidfile /var/run/cassandra.pid
-  start program = "/etc/init.d/cassandra start"
-  stop program = "/etc/init.d/cassandra stop"
+
+  start program    = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL && /etc/init.d/cassandra start'"
+  stop program     = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL && /etc/init.d/cassandra stop'"
+  restart program  = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL && /etc/init.d/cassandra restart'"
+
   if failed host localhost port 9160 type TCP
-    with timeout 15 seconds
-    for 6 times within 6 cycles
-    then restart
+     with timeout 15 seconds
+     for 6 times within 6 cycles
+     then restart
+
+  if uptime < 30 seconds
+     then exec "/bin/true"
+     else if succeeded then exec "/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CLEAR"
+

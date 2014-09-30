@@ -1,0 +1,41 @@
+{
+  "alarms" : [
+
+    {
+      "identifier" : "CASSANDRA_PROC_FAIL_CLEAR",
+      "index" : 4000,
+      "severity" : "CLEARED",
+      "cause" : "SOFTWARE_ERROR",
+      "description" : "cassandra: Process failure cleared",
+      "details" : "The Cassandra process has been restored to normal operation."
+    },
+
+    {
+      "identifier" : "CASSANDRA_PROC_FAIL_CRITICAL",
+      "index" : 4000,
+      "severity" : "CRITICAL",
+      "cause" : "SOFTWARE_ERROR",
+      "description" : "cassandra: Process failure",
+      "details" : "Monit has detected that the Cassandra process has failed. A restart will automatically be attempted. If this alarm does not clear, the Cassandra process may have been stopped or an unrecoverable failure may have occurred."
+    },
+
+
+    {
+      "identifier" : "CASSANDRA_RING_NODE_FAIL_CLEAR",
+      "index" : 4001,
+      "severity" : "CLEARED",
+      "cause" : "UNDERLAYING_RESOURCE_UNAVAILABLE",
+      "description" : "cassandra: Ring node failure cleared",
+      "details" : "All Cassandra ring nodes have been restored to normal operation."
+    },
+
+    {
+      "identifier" : "CASSANDRA_RING_NODE_FAIL_MAJOR",
+      "index" : 4001,
+      "severity" : "MAJOR",
+      "cause" : "UNDERLAYING_RESOURCE_UNAVAILABLE",
+      "description" : "cassandra: Ring node failure",
+      "details" : "Cassandra is unable to contact one or more of its ring nodes. It will periodically attempt to reconnect. If this alarm does not clear, ensure that all Cassandra instances are operationsl and verify network connectivity to reporting nodes."
+    }
+  ]
+}
