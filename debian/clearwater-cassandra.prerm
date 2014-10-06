@@ -59,13 +59,13 @@ NAME=cassandra
 case "$1" in
     remove)
         rm -f /etc/monit/conf.d/clearwater-cassandra.monit
-        service monit reload
+        reload clearwater-monit
     ;;
 
     upgrade|deconfigure)
         # Use || /bin/true to ignore a failure, because set -e is in effect.
         rm -f /etc/monit/conf.d/clearwater-cassandra.monit
-        service monit reload
+        reload clearwater-monit
         service cassandra stop || /bin/true
     ;;
 

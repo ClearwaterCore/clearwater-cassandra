@@ -3,22 +3,22 @@
 # the check script to avoid unnecessary retransmissions). Only check every
 # 60 seconds due to overhead of running nodetool.
 
-check program poll_cassandra_ring with path "/usr/share/clearwater/bin/poll_cassandra_ring.sh"
-
-  every 6 cycles
+check program poll_cassandra_ring with path "/usr/share/clearwater/bin/poll_cassandra_ring.sh" every 6 cycles
 
   if status != 0
      then alert
 
 
 # Monitor the service's PID file and public interface. Issue an alarm for
+# any restart, clear after the process has run for 30s.
+# Monitor the service's PID file and public interface. Issue an alarm for
 # any restart, and clear upon qualified recovery.
 
 check process cassandra pidfile /var/run/cassandra.pid
 
-  start program    = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL && /etc/init.d/cassandra start'"
-  stop program     = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL && /etc/init.d/cassandra stop'"
-  restart program  = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL && /etc/init.d/cassandra restart'"
+  start program    = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL; /etc/init.d/cassandra start'"
+  stop program     = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL; /etc/init.d/cassandra stop'"
+  restart program  = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit CASSANDRA_PROC_FAIL_CRITICAL; /etc/init.d/cassandra restart'"
 
   if failed host localhost port 9160 type TCP
      with timeout 15 seconds

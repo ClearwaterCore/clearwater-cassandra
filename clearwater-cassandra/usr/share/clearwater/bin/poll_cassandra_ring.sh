@@ -48,13 +48,23 @@
 # Execution of nodetool is "niced" to minimize the impact of its JVM use.
 
 
-alarm_state_file="/tmp/.cassandra_ring_alram_issued"
+alarm_state_file="/tmp/.cassandra_ring_alarm_issued"
 
 
+# Return state of Cassandra ring, 0 if all nodes are up, 1 if one or more
+# nodes are down. 
 ring_state()
 {
+    # Run nodetool to get the status of nodes in the ring, if successful
+    # continue to check node status, otherwise return 0 (local Cassandra
+    # failure is not considered a ring error). 
     local out=`nice -n 19 nodetool status 2> /dev/null`
     if [ "$?" = 0 ] ; then
+        # Look through nodetool output for status lines. These begin
+        # with two uppercase characters, indicating Status and State,
+        # followed by whitespace. The first character is what we are
+        # interested in: U = Up status, D = Down status. If any line
+        # indicates a node is down return a 1, otherwise 0.
         local state_regex="^([UD])[NLJM]\s+.*"
         IFS=$'\n'
         for line in $out

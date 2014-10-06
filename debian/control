@@ -11,5 +11,5 @@ Homepage: http://projectclearwater.org/
 
 Package: clearwater-cassandra
 Architecture: all
-Depends: cassandra (= 1.2.12), monit
+Depends: cassandra (= 1.2.12), clearwater-infrastructure 
 Description: Apache Cassandra configured for Clearwater
