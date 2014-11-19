@@ -57,7 +57,7 @@ case "$1" in
     configure)
         # Set up Monit configuration for Cassandra
         install -D --mode=0644 /usr/share/clearwater/conf/clearwater-cassandra.monit /etc/monit/conf.d/
-        service monit reload
+        reload clearwater-monit || true
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
