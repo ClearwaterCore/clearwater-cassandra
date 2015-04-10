@@ -12,5 +12,5 @@ Homepage: http://projectclearwater.org/
 Package: clearwater-cassandra
 Architecture: all
 Pre-Depends: cassandra (= 1.2.12)
-Depends: clearwater-infrastructure 
+Depends: clearwater-infrastructure, clearwater-etcd
 Description: Apache Cassandra configured for Clearwater

@@ -53,12 +53,17 @@ set -e
 
 NAME=cassandra
 
+. /etc/clearwater/config
+
 case "$1" in
     configure)
         # Set up Monit configuration for Cassandra
         install -D --mode=0644 /usr/share/clearwater/conf/clearwater-cassandra.monit /etc/monit/conf.d/
         service clearwater-infrastructure restart
         reload clearwater-monit || true
+
+        # Cluster Cassandra
+        python /usr/share/clearwater/bin/cluster_cassandra.py $etcd_ip $local_ip
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
