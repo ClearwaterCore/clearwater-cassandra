@@ -37,6 +37,6 @@
 # This script polls a cassandra process and check whether it is healthy by checking
 # that the 9160 port is open at cassandra_hostname.
 . /etc/clearwater/config
-[ ! -z "$cassandra_hostname" ] || cassandra_hostname="localhost"
+[ ! -z "$cassandra_hostname" ] || cassandra_hostname="127.0.0.1"
 /usr/share/clearwater/bin/poll-tcp 9160 $cassandra_hostname
 exit $?
