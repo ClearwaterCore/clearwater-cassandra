@@ -59,7 +59,7 @@ case "$1" in
 	sed -ie 's/^row_cache_provider/#row_cache_provider/; s/^reduce_cache_sizes_at/#reduce_cache_sizes_at/; s/^tombstone_debug_threshold/#tombstone_debug_threshold/; s/^reduce_cache_capacity_to/#reduce_cache_capacity_to/; s/^flush_largest_memtables_at/#flush_largest_memtables_at/' /etc/cassandra/cassandra.yaml
 	if [ -e /etc/cassandra/cassandra.yamle ]; then
 	    diff -q /etc/cassandra/cassandra.yaml /etc/cassandra/cassandra.yamle
-	    if [ $? -ne 0 ]]; then
+	    if [ $? -ne 0 ]; then
 		service cassandra restart
 	    fi
 	fi
