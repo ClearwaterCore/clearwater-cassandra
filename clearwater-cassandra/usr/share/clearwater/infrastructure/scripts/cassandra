@@ -38,6 +38,16 @@
 
 [ -z $signaling_namespace ] || namespace_prefix="ip netns exec $signaling_namespace "
 
+rm -f /etc/init.d/cassandrae
+sed -ie 's#\(^[[:space:]]*\)start-stop-daemon#\1$JSVC start-stop-daemon#' /etc/init.d/cassandra
+if [ -e /etc/init.d/cassandrae ]; then
+    diff -q /etc/init.d/cassandra /etc/init.d/cassandrae
+    if [ $? -ne 0 ]; then
+	service cassandra stop
+    fi
+    rm -f /etc/init.d/cassandrae
+fi
+
 TEMP=$(mktemp -t cassandra-env.sh.XXXXXX) || exit 1
 
 cat /etc/cassandra/cassandra-env.sh | grep -v "# clearwater-infrastructure" > $TEMP
