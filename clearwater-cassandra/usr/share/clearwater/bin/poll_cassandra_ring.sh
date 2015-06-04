@@ -51,6 +51,8 @@
 
 alarm_state_file="/tmp/.cassandra_ring_alarm_issued"
 
+. /etc/clearwater/config
+[ -z "$signaling_namespace" ] || namespace_prefix="ip netns exec $signaling_namespace"
 
 # Return state of Cassandra ring, 0 if all nodes are up, otherwise the 
 # count of nodes that are down. 
@@ -60,7 +62,7 @@ ring_state()
     # Run nodetool to get the status of nodes in the ring, if successful
     # continue to check node status, otherwise return 0 (local Cassandra
     # failure is not considered a ring error). 
-    local out=`nice -n 19 nodetool status 2> /dev/null`
+    local out=`nice -n 19 $namespace_prefix nodetool status 2> /dev/null`
     if [ "$?" = 0 ] ; then
         # Look through nodetool output for status lines. These begin
         # with two uppercase characters, indicating Status and State,
