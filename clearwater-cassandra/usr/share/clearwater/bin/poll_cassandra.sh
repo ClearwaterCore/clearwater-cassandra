@@ -38,5 +38,6 @@
 # that the 9160 port is open at cassandra_hostname.
 . /etc/clearwater/config
 [ ! -z "$cassandra_hostname" ] || cassandra_hostname="127.0.0.1"
-/usr/share/clearwater/bin/poll-tcp 9160 $cassandra_hostname
+[ -z "$signaling_namespace" ] || namespace_prefix="ip netns exec $signaling_namespace"
+$namespace_prefix /usr/share/clearwater/bin/poll-tcp 9160 $cassandra_hostname
 exit $?
