@@ -55,6 +55,14 @@ NAME=cassandra
 
 case "$1" in
     configure)
+	rm -f /etc/cassandra/cassandra.yamle
+	sed -ie 's/^row_cache_provider/#row_cache_provider/; s/^reduce_cache_sizes_at/#reduce_cache_sizes_at/; s/^tombstone_debug_threshold/#tombstone_debug_threshold/; s/^reduce_cache_capacity_to/#reduce_cache_capacity_to/; s/^flush_largest_memtables_at/#flush_largest_memtables_at/' /etc/cassandra/cassandra.yaml
+	if [ -e /etc/cassandra/cassandra.yamle ]; then
+	    if diff -q /etc/cassandra/cassandra.yaml /etc/cassandra/cassandra.yamle > /dev/null 2>&1; then
+		service cassandra restart
+	    fi
+	fi
+
         # Make sure that Java 7 is in use
         perl -p -i -e 's/^JAVA_HOME=.+\n//' /etc/default/cassandra
         echo "JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/" >> /etc/default/cassandra
