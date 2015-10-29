@@ -56,9 +56,9 @@ COMMITLOG_DIR=/var/lib/cassandra/commitlog
 
 if [[ -z "$BACKUP" ]]
 then
-  echo "No backup specified, will attempt to backup from latest"
+  echo "No backup specified, will attempt to restore from latest"
 else
-  echo "Will attempt to backup from backup $BACKUP"
+  echo "Will attempt to restore from backup $BACKUP"
 fi
 
 if [[ -z "$BACKUP_DIR" ]]
@@ -69,16 +69,16 @@ then
   else
     BACKUP_DIR="/usr/share/clearwater/$COMPONENT/backup/backups"
   fi
-  echo "No backup directory specified, will attempt to backup from $BACKUP_DIR"
+  echo "No backup directory specified, will attempt to restore from $BACKUP_DIR"
 else
-  echo "Will attempt to backup from directory $BACKUP_DIR"
+  echo "Will attempt to restore from directory $BACKUP_DIR"
 fi
 
 if [[ "$(ls -A $BACKUP_DIR)" ]]
 then
   if [[ -z $BACKUP ]]
   then
-    echo "No valid backup specified, will attempt to backup from latest"
+    echo "No valid backup specified, will attempt to restore from latest"
     BACKUP=$(ls -t $BACKUP_DIR | head -1)
     mkdir -p $DATA_DIR
   elif [ -d "$BACKUP_DIR/$BACKUP" ]
@@ -97,7 +97,10 @@ echo "Restoring backup for keyspace $KEYSPACE..."
 
 # Stop monit from restarting Cassandra while we restore
 monit unmonitor -g cassandra
-service cassandra stop
+
+# Stop Cassandra.  We remove any xss=.., as this can be printed out by
+# cassandra-env.sh
+service cassandra stop | grep -v "^xss = "
 
 echo "Clearing commitlog..."
 rm -rf $COMMITLOG_DIR/*
@@ -114,5 +117,7 @@ do
   chown cassandra:cassandra $TARGET_DIR/*
 done
 
-service cassandra start
+# Start Cassandra.  We remove any xss=.., as this can be printed out by
+# cassandra-env.sh
+service cassandra start | grep -v "^xss = "
 monit monitor -g cassandra
