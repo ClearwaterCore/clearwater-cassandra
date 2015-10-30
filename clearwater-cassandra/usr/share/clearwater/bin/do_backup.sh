@@ -167,6 +167,6 @@ done
 # Finally remove the snapshots from the Cassandra data directory, leaving only
 # the backups in the backup directory.  We remove any xss=.., as this can be
 # printed out by cassandra-env.sh.
-run_in_signaling nodetool clearsnapshot $KEYSPACE | grep -v "^xss = "
+run_in_signaling nodetool clearsnapshot "$KEYSPACE" | grep -v "^xss = "
 
 echo "Backups can be found at: $BACKUP_DIR"
