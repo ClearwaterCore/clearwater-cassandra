@@ -45,6 +45,49 @@ die () {
   exit $rc
 }
 
+# Function to run the given command in the signaling namespace if it exists,
+# otherwise use the default namespace.
+run_in_signaling () {
+  local namespaces=( $(ip netns list) )
+  local namespace_prefix=""
+
+  if [[ ${#namespaces[@]} == 1 ]]
+  then
+    # We have a single namespace, that we can assume is the signalling
+    # namespace so run the command in it.
+    namespace_prefix="ip netns exec ${namespaces[0]}"
+  else
+    if [[ ${#namespaces[@]} -gt 1 ]]
+    then
+      # More than a single additional namespace is configured so cannot
+      # determine namespace automatically. Prompt user for help
+      echo "Please enter name of signaling namespace:"
+      local signaling_name
+      read signaling_name
+
+      local namespace
+      local isFound=0
+      for namespace in "${namespaces[@]}"
+      do
+        # If the namespace provided by the user is valid, run the command in
+        # that namespace.
+        if [[ "$namespace" == "$signaling_name" ]]
+        then
+          isFound=1
+          # Single quote to keep verbatim
+          namespace_prefix="ip netns exec $namespace"
+        fi
+      done
+
+      [[ "$isFound" ]] || die "Unable to find namespace $signaling_name"
+    fi
+  fi
+
+  # We must ensure that the user input is the last command of the function
+  # in order to preserve the exit status upon returning.
+  $namespace_prefix "$@"
+}
+
 [ "$#" -eq 1 ] || die "Usage: do_backup.sh <keyspace>" $ERROR_USER
 
 KEYSPACE=$1
@@ -77,7 +120,7 @@ done
 # Create new backup.  We remove any xss=.., as this can be printed out by
 # cassandra-env.sh.
 echo "Creating backup for keyspace $KEYSPACE..."
-nodetool -h localhost -p 7199 snapshot $KEYSPACE | grep -v "^xss = "
+run_in_signaling nodetool -h localhost -p 7199 snapshot "$KEYSPACE" | grep -v "xss = "
 
 # Check we successfully took the snapshot by looking at the return code
 # for the nodetool command
@@ -117,6 +160,6 @@ done
 # Finally remove the snapshots from the Cassandra data directory, leaving only
 # the backups in the backup directory.  We remove any xss=.., as this can be
 # printed out by cassandra-env.sh.
-nodetool clearsnapshot $KEYSPACE | grep -v "^xss = "
+run_in_signaling nodetool clearsnapshot $KEYSPACE | grep -v "^xss = "
 
 echo "Backups can be found at: $BACKUP_DIR"
