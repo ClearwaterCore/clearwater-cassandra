@@ -46,40 +46,47 @@ die () {
 }
 
 # Function to run the given command in the signaling namespace if it exists,
-# otherwise use the default namespace.
+# otherwise use the default namespace. Use a global variable to avoid
+# recomputation.
+namespace_prefix=""
 run_in_signaling () {
   local namespaces=( $(ip netns list) )
-  local namespace_prefix=""
 
-  if [[ ${#namespaces[@]} == 1 ]]
+  if [[ -z $namespace_prefix ]]
   then
-    # We have a single namespace, that we can assume is the signalling
-    # namespace so run the command in it.
-    namespace_prefix="ip netns exec ${namespaces[0]}"
-  else
-    if [[ ${#namespaces[@]} -gt 1 ]]
+    # namespace_prefix not already computed so continue
+    if [[ ${#namespaces[@]} == 1 ]]
     then
-      # More than a single additional namespace is configured so cannot
-      # determine namespace automatically. Prompt user for help
-      echo "Please enter name of signaling namespace:"
-      local signaling_name
-      read signaling_name
+      # We have a single namespace, that we can assume is the signalling
+      # namespace so run the command in it.
+      namespace_prefix="ip netns exec ${namespaces[0]}"
+    else
+      if [[ ${#namespaces[@]} -gt 1 ]]
+      then
+        # More than a single additional namespace is configured so cannot
+        # determine namespace automatically. Prompt user for help
+        echo "Please enter name of signaling namespace:"
+        local signaling_name
+        read signaling_name
 
-      local namespace
-      local isFound=0
-      for namespace in "${namespaces[@]}"
-      do
-        # If the namespace provided by the user is valid, run the command in
-        # that namespace.
-        if [[ "$namespace" == "$signaling_name" ]]
-        then
-          isFound=1
-          # Single quote to keep verbatim
-          namespace_prefix="ip netns exec $namespace"
-        fi
-      done
+        local namespace
+        local isFound=0
+        for namespace in "${namespaces[@]}"
+        do
+          # If the namespace provided by the user is valid, run the command in
+          # that namespace.
+          if [[ "$namespace" == "$signaling_name" ]]
+          then
+            isFound=1
+            # Single quote to keep verbatim
+            namespace_prefix="ip netns exec $namespace"
+          fi
+        done
 
-      [[ "$isFound" ]] || die "Unable to find namespace $signaling_name"
+        echo $isFound
+
+        [[ $isFound == 1 ]] || die "Unable to find namespace $signaling_name"
+      fi
     fi
   fi
 
