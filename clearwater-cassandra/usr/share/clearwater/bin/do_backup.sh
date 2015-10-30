@@ -165,6 +165,6 @@ done
 
 # Finally remove the snapshots from the Cassandra data directory, leaving only
 # the backups in the backup directory
-run_in_signaling nodetool clearsnapshot $KEYSPACE
+run_in_signaling nodetool clearsnapshot "$KEYSPACE"
 
 echo "Backups can be found at: $BACKUP_DIR"
