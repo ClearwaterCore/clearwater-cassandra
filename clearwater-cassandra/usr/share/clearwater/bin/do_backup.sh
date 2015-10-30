@@ -45,6 +45,9 @@ die () {
   exit $rc
 }
 
+# Read in the configured signalling namespace prefix as '$namespace_prefix'
+. /etc/clearwater/config
+
 [ "$#" -eq 1 ] || die "Usage: do_backup.sh <keyspace>" $ERROR_USER
 
 KEYSPACE=$1
@@ -76,7 +79,7 @@ done
 
 # Create new backup
 echo "Creating backup for keyspace $KEYSPACE..."
-nodetool -h localhost -p 7199 snapshot $KEYSPACE
+$namespace_prefix nodetool -h localhost -p 7199 snapshot "$KEYSPACE"
 
 # Check we successfully took the snapshot by looking at the return code
 # for the nodetool command
@@ -115,6 +118,6 @@ done
 
 # Finally remove the snapshots from the Cassandra data directory, leaving only
 # the backups in the backup directory
-nodetool clearsnapshot $KEYSPACE
+$namespace_prefix nodetool clearsnapshot "$KEYSPACE"
 
 echo "Backups can be found at: $BACKUP_DIR"
