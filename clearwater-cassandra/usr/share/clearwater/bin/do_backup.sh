@@ -45,6 +45,9 @@ die () {
   exit $rc
 }
 
+# Read in the configured signalling namespace prefix as '$namespace_prefix'
+. /etc/clearwater/config
+
 [ "$#" -eq 1 ] || die "Usage: do_backup.sh <keyspace>" $ERROR_USER
 
 KEYSPACE=$1
@@ -74,9 +77,10 @@ do
   rm -r $BACKUP_DIR/$f
 done
 
-# Create new backup
+# Create new backup.  We remove any xss=.., as this can be printed out by
+# cassandra-env.sh.
 echo "Creating backup for keyspace $KEYSPACE..."
-nodetool -h localhost -p 7199 snapshot $KEYSPACE
+$namespace_prefix nodetool -h localhost -p 7199 snapshot "$KEYSPACE" | grep -v "xss = "
 
 # Check we successfully took the snapshot by looking at the return code
 # for the nodetool command
@@ -114,7 +118,8 @@ do
 done
 
 # Finally remove the snapshots from the Cassandra data directory, leaving only
-# the backups in the backup directory
-nodetool clearsnapshot $KEYSPACE
+# the backups in the backup directory.  We remove any xss=.., as this can be
+# printed out by cassandra-env.sh.
+$namespace_prefix nodetool clearsnapshot "$KEYSPACE" | grep -v "^xss = "
 
 echo "Backups can be found at: $BACKUP_DIR"
