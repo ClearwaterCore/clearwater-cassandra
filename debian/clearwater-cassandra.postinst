@@ -61,6 +61,16 @@ case "$1" in
         perl -p -i -e 's/^JAVA_HOME=.+\n//' /usr/share/cassandra/cassandra.in.sh
         echo "JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/" >> /usr/share/cassandra/cassandra.in.sh
 
+        # If containers is set to Y then reduce then tune the heap sizes used by
+        # Cassandra
+        . /etc/clearwater/config
+
+        if [ "$containers" = "Y" ]
+        then
+          echo "JVM_OPTS=\`echo \$JVM_OPTS | sed -e 's/-Xms[0-9]*M/-Xms128M/g' -e 's/-Xmx[0-9]*M/-Xmx128M/g' -e 's/-Xmn[0-9]*M/-Xmn64M/g'\`" >> /etc/cassandra/cassandra-env.sh
+          service cassandra stop || /bin/true
+        fi
+
         # Set up Monit configuration for Cassandra
         install -D --mode=0644 /usr/share/clearwater/conf/clearwater-cassandra.monit /etc/monit/conf.d/
         service clearwater-infrastructure restart
