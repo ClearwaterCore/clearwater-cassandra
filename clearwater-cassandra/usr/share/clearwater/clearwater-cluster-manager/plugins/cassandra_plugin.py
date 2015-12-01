@@ -191,6 +191,8 @@ class CassandraPlugin(SynchroniserPluginBase):
         pass
 
     def on_stable_cluster(self, cluster_view):
+        _log.debug("Clearing Cassandra not-clustered alarm")
+        issue_alarm(alarm_constants.CASSANDRA_NOT_YET_CLUSTERED_CLEARED)
         pass
 
     def on_leaving_cluster(self, cluster_view):
