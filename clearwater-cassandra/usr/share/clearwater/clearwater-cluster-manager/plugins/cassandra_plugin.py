@@ -109,6 +109,14 @@ def join_cassandra_cluster(cluster_view,
         run_command("mkdir -m 755 /var/lib/cassandra")
         run_command("chown -R cassandra /var/lib/cassandra")
 
+        # Fix up cassandra's env for IPv4/6
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            run_command("sed -i~ 's/^\\(JVM_OPTS[[:space:]]*=[[:space:]]*.*[.]preferIPv4Stack=true.*\\)$/#\\1/' /etc/cassandra/cassandra-env.sh")
+        except socket.error:
+            run_command("sed -i~ 's/^#\\(JVM_OPTS[[:space:]]*=[[:space:]]*.*[.]preferIPv4Stack=true.*\\)$/\\1/' /etc/cassandra/cassandra-env.sh")
+
+
         start_cassandra()
 
         _log.debug("Cassandra node successfully clustered")
