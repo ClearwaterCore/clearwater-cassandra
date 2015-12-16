@@ -42,6 +42,7 @@ import time
 import yaml
 import os
 import subprocess
+import socket
 
 _log = logging.getLogger("cassandra_plugin")
 
