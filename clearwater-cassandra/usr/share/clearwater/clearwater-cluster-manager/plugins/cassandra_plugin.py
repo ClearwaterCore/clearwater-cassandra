@@ -75,6 +75,16 @@ def join_cassandra_cluster(cluster_view,
         # Fill in the correct listen_address and seeds values in the yaml
         # document.
         doc["listen_address"] = ip
+
+        # Fix up cassandra's rpc_address for IPv4/6. On a pure IPv6
+        # network cassandra/cqlsh won't work properly using the
+        # default value of "localhost"
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            doc["rpc_address"] = "0:0:0:0:0:0:0:1"
+        except socket.error:
+            doc["rpc_address"] = "127.0.0.1"
+
         doc["seed_provider"][0]["parameters"][0]["seeds"] = seeds_list_str
         doc["endpoint_snitch"] = "GossipingPropertyFileSnitch"
        
