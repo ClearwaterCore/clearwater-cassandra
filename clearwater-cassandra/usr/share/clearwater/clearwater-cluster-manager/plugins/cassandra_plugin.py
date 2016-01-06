@@ -42,6 +42,7 @@ import time
 import yaml
 import os
 import subprocess
+import socket
 
 _log = logging.getLogger("cassandra_plugin")
 
@@ -74,6 +75,16 @@ def join_cassandra_cluster(cluster_view,
         # Fill in the correct listen_address and seeds values in the yaml
         # document.
         doc["listen_address"] = ip
+
+        # Fix up cassandra's rpc_address for IPv4/6. On a pure IPv6
+        # network cassandra/cqlsh won't work properly using the
+        # default value of "localhost"
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            doc["rpc_address"] = "0:0:0:0:0:0:0:1"
+        except socket.error:
+            doc["rpc_address"] = "127.0.0.1"
+
         doc["seed_provider"][0]["parameters"][0]["seeds"] = seeds_list_str
         doc["endpoint_snitch"] = "GossipingPropertyFileSnitch"
 
@@ -108,6 +119,14 @@ def join_cassandra_cluster(cluster_view,
         run_command("rm -rf /var/lib/cassandra/")
         run_command("mkdir -m 755 /var/lib/cassandra")
         run_command("chown -R cassandra /var/lib/cassandra")
+
+        # Fix up cassandra's env for IPv4/6
+        try:
+            socket.inet_pton(socket.AF_INET6, ip)
+            run_command("sed -i~ 's/^\\(JVM_OPTS[[:space:]]*=[[:space:]]*.*[.]preferIPv4Stack=true.*\\)$/#\\1/' /etc/cassandra/cassandra-env.sh")
+        except socket.error:
+            run_command("sed -i~ 's/^#\\(JVM_OPTS[[:space:]]*=[[:space:]]*.*[.]preferIPv4Stack=true.*\\)$/\\1/' /etc/cassandra/cassandra-env.sh")
+
 
         start_cassandra()
 
