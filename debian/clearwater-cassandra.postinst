@@ -55,12 +55,6 @@ NAME=cassandra
 
 case "$1" in
     configure)
-        # Make sure that Java 7 is in use
-        perl -p -i -e 's/^JAVA_HOME=.+\n//' /etc/default/cassandra
-        echo "JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/" >> /etc/default/cassandra
-        perl -p -i -e 's/^JAVA_HOME=.+\n//' /usr/share/cassandra/cassandra.in.sh
-        echo "JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/" >> /usr/share/cassandra/cassandra.in.sh
-
         # Set up Monit configuration for Cassandra
         install -D --mode=0644 /usr/share/clearwater/conf/clearwater-cassandra.monit /etc/monit/conf.d/
         service clearwater-infrastructure restart

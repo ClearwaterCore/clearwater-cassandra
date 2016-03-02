@@ -36,24 +36,16 @@
 
 . /etc/clearwater/config
 
-if [[ -n $signaling_namespace ]]
+# If we're using IPv6 addresses we have to tell the JVM not to prefer
+# IPv4 addresses (otherwise cassandra won't be able to start). This is
+# controlled via the preferIPv4Stack option in cassandra-env.sh.
+
+IPv6_TEMPLATE=/usr/share/clearwater/cassandra/cassandra-env-ipv6.sh
+IPv4_TEMPLATE=/usr/share/clearwater/cassandra/cassandra-env-ipv4.sh
+
+if [ /usr/share/clearwater/bin/is_address_ipv6.py $local_ip ]
 then
-  # If the signaling_namespace parameter is set then add it to the 
-  # start-stop-daemon call (overwriting any previous namespace)
-  namespace_prefix="ip netns exec $signaling_namespace "
-  TEMP=$(mktemp -t cassandra.XXXXXX) || exit 1
-  sed "s/^.*start-stop-daemon/    $namespace_prefix start-stop-daemon/" </etc/init.d/cassandra >$TEMP
+  cp $IPv6_TEMPLATE /etc/cassandra/cassandra-env.sh
 else
-  TEMP=$(mktemp -t cassandra.XXXXXX) || exit 1
-  sed "s/^.*start-stop-daemon/    start-stop-daemon/" </etc/init.d/cassandra >$TEMP
+  cp $IPv4_TEMPLATE /etc/cassandra/cassandra-env.sh
 fi
-
-diff /etc/init.d/cassandra $TEMP > /dev/null
-if [[ $? != 0 ]]
-then
-  # File has changed, need to restart cassandra to pick up the change.
-  cp $TEMP /etc/init.d/cassandra
-  service cassandra stop
-fi
-
-rm $TEMP
