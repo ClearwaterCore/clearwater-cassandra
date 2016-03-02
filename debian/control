@@ -5,7 +5,7 @@ Priority: optional
 # clearwater-infrastructure explicitly checks for packages of this name when
 # updating
 Maintainer: Project Clearwater Maintainers <maintainers@projectclearwater.org>
-Build-Depends: debhelper (>= 8.0.0)
+Build-Depends: debhelper (>= 8.0.0), config-package-dev
 Standards-Version: 3.9.2
 Homepage: http://projectclearwater.org/
 
@@ -13,4 +13,6 @@ Package: clearwater-cassandra
 Architecture: all
 Pre-Depends: cassandra (= 2.0.14)
 Depends: clearwater-infrastructure 
+Provides: ${diverted-files}
+Conflicts: ${diverted-files}
 Description: Apache Cassandra configured for Clearwater
