@@ -65,9 +65,9 @@ case "$1" in
         service clearwater-infrastructure restart
         reload clearwater-monit || true
 
-        # Stop Cassandra so that Monit restarts it, with any of the
-        # configuration files we've changed in place
-        service cassandra stop
+        # Force the clustering plugin to regenerate our cassandra.yaml, so that
+        # changes to the template are picked up
+        touch "/etc/clearwater/force_cassandra_yaml_refresh"
 
         # Stop the cluster manager, so that it is restarted by Monit and picks
         # up the new Cassandra scaling plugins. We check whether the process is
@@ -76,6 +76,8 @@ case "$1" in
           service clearwater-cluster-manager stop || /bin/true
         fi
 
+        # No need to restart Cassandra - the clustering plugin will do that
+        # when it regenerates cassandra.yaml
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)
