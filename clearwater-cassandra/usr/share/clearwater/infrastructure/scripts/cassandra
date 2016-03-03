@@ -48,7 +48,6 @@ then
   new_file=$IPv6_TEMPLATE
 else
   new_file=$IPv4_TEMPLATE
-  ln -sf $IPv4_TEMPLATE /etc/cassandra/cassandra-env.sh
 fi
 
 if [[ -e /etc/cassandra/cassandra-env.sh &&

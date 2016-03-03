@@ -1,4 +1,6 @@
-# This file lists some files provided by this package which should replace those provided by Cassandra. This is done without causing Debian packaging conflicts if Cassandra subsequently ships a changed version.
+# This file lists some files provided by this package which should replace
+# those provided by Cassandra. This is done without causing Debian packaging
+# conflicts if Cassandra subsequently ships a changed version.
 #
 # This uses the config-package-dev helper.
 
