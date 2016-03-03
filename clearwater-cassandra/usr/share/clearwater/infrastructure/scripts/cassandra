@@ -43,9 +43,22 @@
 IPv6_TEMPLATE=/usr/share/clearwater/cassandra/cassandra-env-ipv6.sh
 IPv4_TEMPLATE=/usr/share/clearwater/cassandra/cassandra-env-ipv4.sh
 
-if [ /usr/share/clearwater/bin/is_address_ipv6.py $local_ip ]
+if /usr/share/clearwater/bin/is_address_ipv6.py $local_ip
 then
-  cp $IPv6_TEMPLATE /etc/cassandra/cassandra-env.sh
+  new_file=$IPv6_TEMPLATE
 else
-  cp $IPv4_TEMPLATE /etc/cassandra/cassandra-env.sh
+  new_file=$IPv4_TEMPLATE
+  ln -sf $IPv4_TEMPLATE /etc/cassandra/cassandra-env.sh
 fi
+
+if [[ -e /etc/cassandra/cassandra-env.sh &&
+      "$(readlink /etc/cassandra/cassandra-env.sh)" = $new_file ]]
+then
+  # File unchanged, do nothing
+  /bin/true
+else
+  ln -sf $new_file /etc/cassandra/cassandra-env.sh
+  # File has changed, need to restart cassandra to pick up the change.
+  service cassandra stop
+fi
+

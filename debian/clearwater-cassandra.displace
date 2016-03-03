@@ -1,3 +1,12 @@
+# This file lists some files provided by this package which should replace those provided by Cassandra. This is done without causing Debian packaging conflicts if Cassandra subsequently ships a changed version.
+#
+# This uses the config-package-dev helper.
+
+# For example, this line replaces the standard /etc/init.d/cassandra with the
+# /etc/init.d/cassandra.clearwater file we provide. The "displace extension" to
+# strip is generated from the first part of the package name (e.g.
+# "debathena-transform-example" -> "debathena", "clearwater-cassandra" ->
+# "clearwater").
 /etc/default/cassandra.clearwater
 /etc/init.d/cassandra.clearwater
 /usr/share/cassandra/cassandra.in.sh.clearwater
