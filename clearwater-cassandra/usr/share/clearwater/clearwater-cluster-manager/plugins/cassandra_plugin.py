@@ -238,6 +238,10 @@ class CassandraPlugin(SynchroniserPluginBase):
             # Sleep so we don't tight loop
             time.sleep(1)
 
+        # Restart clearwater-infrastructure so any necessary schema creation
+        # scripts get run
+        run_command("sudo service clearwater-infrastructure restart")
+
 
 def load_as_plugin(params):
     return CassandraPlugin(params)
