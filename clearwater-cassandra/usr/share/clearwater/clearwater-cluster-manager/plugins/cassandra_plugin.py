@@ -71,6 +71,10 @@ class CassandraPlugin(SynchroniserPluginBase):
     def cluster_description(self):
         return "Cassandra cluster"
 
+    def on_startup(self, cluster_view):
+        if os.path.exists("/etc/clearwater/force_cassandra_yaml_refresh"):
+            self.write_new_cassandra_config(self.get_seeds(cluster_view))
+
     def on_cluster_changing(self, cluster_view):
         _log.debug("Raising Cassandra not-clustered alarm")
         self._clustering_alarm.set()
@@ -91,9 +95,6 @@ class CassandraPlugin(SynchroniserPluginBase):
         pass
 
     def on_stable_cluster(self, cluster_view):
-        if os.path.exists("/etc/clearwater/force_cassandra_yaml_refresh"):
-            self.write_new_cassandra_config(self.get_seeds(cluster_view))
-
         _log.debug("Clearing Cassandra not-clustered alarm")
         self._clustering_alarm.clear()
 
