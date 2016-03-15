@@ -49,9 +49,9 @@ _log = logging.getLogger("cassandra_plugin")
 
 class CassandraPlugin(SynchroniserPluginBase):
 
-    cassandra_yaml_template = "/usr/share/clearwater/cassandra/cassandra.yaml.template"
-    cassandra_yaml_file = "/etc/cassandra/cassandra.yaml"
-    cassandra_topology_file = "/etc/cassandra/cassandra-rackdc.properties"
+    CASSANDRA_YAML_TEMPLATE = "/usr/share/clearwater/cassandra/cassandra.yaml.template"
+    CASSANDRA_YAML_FILE = "/etc/cassandra/cassandra.yaml"
+    CASSANDRA_TOPOLOGY_FILE = "/etc/cassandra/cassandra-rackdc.properties"
 
     def __init__(self, params):
         self._ip = params.ip
@@ -117,7 +117,7 @@ class CassandraPlugin(SynchroniserPluginBase):
         _log.info("Cassandra seeds list is {}".format(seeds_list_str))
 
         # Read cassandra.yaml template.
-        with open(self.cassandra_yaml_template) as f:
+        with open(self.CASSANDRA_YAML_TEMPLATE) as f:
             doc = yaml.load(f)
 
         # Fill in the correct listen_address and seeds values in the yaml
@@ -158,8 +158,8 @@ class CassandraPlugin(SynchroniserPluginBase):
         contents = WARNING_HEADER + "\n" + yaml.dump(doc)
         topology = WARNING_HEADER + "\n" + "dc={}\nrack=RAC1\n".format(self._local_site)
 
-        safely_write(self.cassandra_yaml_file, contents)
-        safely_write(self.cassandra_topology_file, topology)
+        safely_write(self.CASSANDRA_YAML_FILE, contents)
+        safely_write(self.CASSANDRA_TOPOLOGY_FILE, topology)
 
         # Restart Cassandra and make sure it picks up the new list of seeds.
         _log.debug("Restarting Cassandra")
