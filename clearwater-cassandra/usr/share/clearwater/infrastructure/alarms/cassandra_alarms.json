@@ -18,7 +18,7 @@
                     "details": "Monit has detected that the Cassandra process has failed. A restart will automatically be attempted. If this alarm does not clear, the Cassandra process may have been stopped or an unrecoverable failure may have occurred.",
                     "description": "Cassandra: Process failure",
                     "cause": "The system has detected that the Cassandra process has failed.",
-                    "effect": "Local Cassandra clients are unable to read or write from the Cassandra database. Check if other processes have raised any alarms to see the service affect (if any) of this.",
+                    "effect": "Local Cassandra clients are unable to read or write from the Cassandra database. Check if other processes have raised any alarms to see the service effect (if any) of this.",
                     "action": "Monitor for the alarm to clear and confirm the system is operating normally. If the Cassandra process fails to return to service then contact your support representative."
                 }
             ]
