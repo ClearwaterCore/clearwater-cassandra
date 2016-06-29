@@ -59,13 +59,18 @@ fi
 
 function quit_if_no_cassandra() {
 
-dpkg-query -W -f='${Status}\n' cassandra 2> /dev/null | grep -q "install ok installed"
+  dpkg-query -W -f='${Status}\n' clearwater-cassandra 2> /dev/null | grep -q "install ok installed"
+  cassandra_installed_rc=$?
 
-cassandra_installed_rc=$?
+  if [ $cassandra_installed_rc -ne 0 ]
+  then
+    echo "Cassandra is not installed yet, skipping schema addition for now"
+    exit 0
+  fi
 
-if [ $cassandra_installed_rc -ne 0 ]  || [ ! -e /etc/cassandra/cassandra.yaml ]
-then
-  echo "Cassandra is not installed yet, skipping schema addition for now"
-  exit 0
-fi
+  if [ ! -e /etc/cassandra/cassandra.yaml ]
+  then
+    echo "Cassandra is not configured yet, skipping schema addition for now"
+    exit 0
+  fi
 }

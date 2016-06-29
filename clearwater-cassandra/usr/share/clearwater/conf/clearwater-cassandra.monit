@@ -38,13 +38,13 @@
 check process cassandra_process with pidfile /var/run/cassandra/cassandra.pid
   group cassandra
 
-  start program    = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit 4000.3; /etc/init.d/cassandra start'"
-  stop program     = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit 4000.3; /etc/init.d/cassandra stop'"
-  restart program  = "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit 4000.3; /etc/init.d/cassandra restart'"
+  start program    = "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; /etc/init.d/cassandra start'"
+  stop program     = "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; /etc/init.d/cassandra stop'"
+  restart program  = "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; /etc/init.d/cassandra restart'"
 
   # Check the service's resource usage, and stop the process if it's too high.
   # Monit will raise an alarm when it restarts the process
-  if memory > 80% for 6 cycles then exec "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit 4000.3; /etc/init.d/cassandra stop'"
+  if memory > 80% for 6 cycles then exec "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; /etc/init.d/cassandra stop'"
 
 # Monitor connectivity to Cassandra ring nodes. If connectivity is lost to
 # any node issue an alarm, otherwise clear it (alarm handling is done in
@@ -71,4 +71,4 @@ check program cassandra_uptime with path /usr/share/clearwater/infrastructure/sc
 check program poll_cassandra with path "/usr/share/clearwater/bin/poll_cassandra.sh"
   group cassandra
   depends on cassandra_process
-  if status != 0 for 3 cycles then exec "/bin/bash -c '/usr/share/clearwater/bin/issue_alarm.py monit 4000.3; /etc/init.d/cassandra stop'"
+  if status != 0 for 3 cycles then exec "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; /etc/init.d/cassandra stop'"
