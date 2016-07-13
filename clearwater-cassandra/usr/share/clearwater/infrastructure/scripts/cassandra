@@ -46,7 +46,7 @@ new_file=$(mktemp)
 # IPv4 addresses (otherwise cassandra won't be able to start). This is
 # controlled via the preferIPv4Stack option in cassandra-env.sh.
 
-if ! /usr/share/clearwater/bin/is_address_ipv6.py $local_ip
+if ! /usr/share/clearwater/bin/is-address-ipv6 $local_ip
 then
   TEMPLATE_IPV4_SECTION='JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"'
 fi
