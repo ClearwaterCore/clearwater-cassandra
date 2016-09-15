@@ -29,4 +29,4 @@ then
     JAVA_AGENT="$JAVA_AGENT -javaagent:$CASSANDRA_HOME/lib/jamm-0.3.0.jar"
 fi
 
-JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
