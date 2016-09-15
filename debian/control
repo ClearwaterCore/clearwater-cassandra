@@ -11,8 +11,8 @@ Homepage: http://projectclearwater.org/
 
 Package: clearwater-cassandra
 Architecture: all
-Pre-Depends: cassandra (= 2.0.14)
-Depends: clearwater-infrastructure 
+Pre-Depends: cassandra (>= 3.6)
+Depends: clearwater-infrastructure
 Provides: ${diverted-files}
 Conflicts: ${diverted-files}
 Description: Apache Cassandra configured for Clearwater

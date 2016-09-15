@@ -5,4 +5,4 @@
 # class directories and/or jar files.  For example, to enable the
 # JMX-to-web bridge install libmx4j-java and uncomment the following.
 #EXTRA_CLASSPATH="/usr/share/java/mx4j-tools.jar"
-JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64/
+JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
