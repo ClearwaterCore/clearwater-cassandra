@@ -95,7 +95,12 @@ JVM_VERSION=${jvmver%_*}
 JVM_PATCH_VERSION=${jvmver#*_}
 
 if [ "$JVM_VERSION" \< "1.7" ] ; then
-    echo "Cassandra 2.0 and later require Java 7 or later."
+    echo "Cassandra 2.0 and later require Java 7u25 or later."
+    exit 1;
+fi
+
+if [ "$JVM_VERSION" \< "1.8" ] && [ "$JVM_PATCH_VERSION" -lt 25 ] ; then
+    echo "Cassandra 2.0 and later require Java 7u25 or later."
     exit 1;
 fi
 
@@ -213,10 +218,12 @@ JVM_OPTS="$JVM_OPTS -XX:MaxTenuringThreshold=1"
 JVM_OPTS="$JVM_OPTS -XX:CMSInitiatingOccupancyFraction=75"
 JVM_OPTS="$JVM_OPTS -XX:+UseCMSInitiatingOccupancyOnly"
 JVM_OPTS="$JVM_OPTS -XX:+UseTLAB"
+JVM_OPTS="$JVM_OPTS -XX:CompileCommandFile=$CASSANDRA_CONF/hotspot_compiler"
+JVM_OPTS="$JVM_OPTS -XX:CMSWaitDuration=10000"
 
 # note: bash evals '1.7.x' as > '1.7' so this is really a >= 1.7 jvm check
 if { [ "$JVM_VERSION" \> "1.7" ] && [ "$JVM_VERSION" \< "1.8.0" ] && [ "$JVM_PATCH_VERSION" -ge "60" ]; } || [ "$JVM_VERSION" \> "1.8" ] ; then
-    JVM_OPTS="$JVM_OPTS -XX:+CMSParallelInitialMarkEnabled -XX:+CMSEdenChunksRecordAlways"
+    JVM_OPTS="$JVM_OPTS -XX:+CMSParallelInitialMarkEnabled -XX:+CMSEdenChunksRecordAlways -XX:CMSWaitDuration=10000"
 fi
 
 if [ "$JVM_ARCH" = "64-Bit" ] ; then
@@ -245,7 +252,10 @@ fi
 # JVM_OPTS="$JVM_OPTS -Djava.library.path=<JEMALLOC_HOME>/lib/"
 
 # uncomment to have Cassandra JVM listen for remote debuggers/profilers on port 1414
-# JVM_OPTS="$JVM_OPTS -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1414"
+# JVM_OPTS="$JVM_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1414"
+
+# uncomment to have Cassandra JVM log internal method compilation (developers only)
+# JVM_OPTS="$JVM_OPTS -XX:+UnlockDiagnosticVMOptions -XX:+LogCompilation"
 
 # Prefer binding to IPv4 network intefaces (when net.ipv6.bindv6only=1). See
 # http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6342561 (short version:
@@ -262,11 +272,13 @@ JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"
 # for more on configuring JMX through firewalls, etc. (Short version:
 # get it working with no firewall first.)
 #
-# Cassandra ships with JMX accessible  *only* from localhost.  
-# To enable remote JMX connections, change the setting below to enable JMX
+# Cassandra ships with JMX accessible *only* from localhost.
+# To enable remote JMX connections, uncomment lines below
 # with authentication and/or ssl enabled. See https://wiki.apache.org/cassandra/JmxSecurity 
 #
-LOCAL_JMX=yes
+if [ "x$LOCAL_JMX" = "x" ]; then
+    LOCAL_JMX=yes
+fi
 
 if [ "$LOCAL_JMX" = "yes" ]; then
   JVM_OPTS="$JVM_OPTS -Dcassandra.jmx.local.port=$JMX_PORT -XX:+DisableExplicitGC"
@@ -276,7 +288,24 @@ else
   JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=false"
   JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=true"
   JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=/etc/cassandra/jmxremote.password"
+#  JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.keyStore=/path/to/keystore"
+#  JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.keyStorePassword=<keystore-password>"
+#  JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.trustStore=/path/to/truststore"
+#  JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.trustStorePassword=<truststore-password>"
+#  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl.need.client.auth=true"
+#  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.registry.ssl=true"
+#  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl.enabled.protocols=<enabled-protocols>"
+#  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl.enabled.cipher.suites=<enabled-cipher-suites>"
 fi
-JVM_OPTS="$JVM_OPTS -Dcassandra.ignore_rack=true -Dcassandra.ignore_dc=true"
 
+# To use mx4j, an HTML interface for JMX, add mx4j-tools.jar to the lib/
+# directory.
+# See http://wiki.apache.org/cassandra/Operations#Monitoring_with_MX4J
+# By default mx4j listens on 0.0.0.0:8081. Uncomment the following lines
+# to control its listen address and port.
+#MX4J_ADDRESS="-Dmx4jaddress=127.0.0.1"
+#MX4J_PORT="-Dmx4jport=8081"
+
+JVM_OPTS="$JVM_OPTS $MX4J_ADDRESS"
+JVM_OPTS="$JVM_OPTS $MX4J_PORT"
 JVM_OPTS="$JVM_OPTS $JVM_EXTRA_OPTS"
