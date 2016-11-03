@@ -36,28 +36,35 @@
 
 . /etc/clearwater/config
 
-# If we're using IPv6 addresses we have to tell the JVM not to prefer
-# IPv4 addresses (otherwise cassandra won't be able to start). This is
-# controlled via the preferIPv4Stack option in cassandra-env.sh.
+TEMPLATE_HEAPSIZE_SECTION=""
 
-IPv6_TEMPLATE=/usr/share/clearwater/cassandra/cassandra-env-ipv6.sh
-IPv4_TEMPLATE=/usr/share/clearwater/cassandra/cassandra-env-ipv4.sh
+TEMPLATE_FILE=/usr/share/clearwater/cassandra/cassandra-env.sh.template
+new_file=$(mktemp)
 
-if /usr/share/clearwater/bin/is_address_ipv6.py $local_ip
+# On AIO nodes and in containers, we want to restrict Cassandra's memory usage,
+# as the system is shared with more processes, and Cassandra's approach of
+# using 70% of RAM isn't appropriate.
+
+if [[ $reduce_cassandra_mem_usage = "Y" ]]
 then
-  new_file=$IPv6_TEMPLATE
-else
-  new_file=$IPv4_TEMPLATE
+  TEMPLATE_HEAPSIZE_SECTION="MAX_HEAP_SIZE=\"512M\"\nHEAP_NEWSIZE=\"128M\""
 fi
 
+cat $TEMPLATE_FILE |\
+  sed "s/<<<TEMPLATE_HEAPSIZE_SECTION>>>/$TEMPLATE_HEAPSIZE_SECTION/"\
+  > $new_file
+
 if [[ -e /etc/cassandra/cassandra-env.sh &&
-      "$(readlink /etc/cassandra/cassandra-env.sh)" = $new_file ]]
+  "$(md5sum < /etc/cassandra/cassandra-env.sh)" = "$(md5sum < $new_file)" ]]
 then
   # File unchanged, do nothing
   /bin/true
 else
-  ln -sf $new_file /etc/cassandra/cassandra-env.sh
+  rm -f /etc/cassandra/cassandra-env.sh
+  cp $new_file /etc/cassandra/cassandra-env.sh
   # File has changed, need to restart cassandra to pick up the change.
   service cassandra stop
 fi
 
+chmod 0755 /etc/cassandra/cassandra-env.sh
+rm $new_file

@@ -86,7 +86,7 @@ check_clear_alarm()
 {
     if [ -f $alarm_state_file ] ; then
         rm -f $alarm_state_file
-        /usr/share/clearwater/bin/issue_alarm.py "monit" "4001.1"
+        /usr/share/clearwater/bin/issue-alarm "monit" "4001.1"
     fi
 }
 
@@ -95,7 +95,7 @@ check_issue_major_alarm()
 {
     if [ ! -f $alarm_state_file ] || [ `cat $alarm_state_file` != "major" ] ; then
         echo "major" > $alarm_state_file
-        /usr/share/clearwater/bin/issue_alarm.py "monit" "4001.4"
+        /usr/share/clearwater/bin/issue-alarm "monit" "4001.4"
     fi
 }
 
@@ -104,7 +104,7 @@ check_issue_critial_alarm()
 {
     if [ ! -f $alarm_state_file ] || [ `cat $alarm_state_file` != "critical" ] ; then
         echo "critical" > $alarm_state_file
-        /usr/share/clearwater/bin/issue_alarm.py "monit" "4001.3"
+        /usr/share/clearwater/bin/issue-alarm "monit" "4001.3"
     fi
 }
 
