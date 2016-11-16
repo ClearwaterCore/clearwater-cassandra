@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Project Clearwater - IMS in the Cloud
+# Copyright (C) 2016 Metaswitch Networks Ltd
+#
+# This program is free software: you can redistribute it and/or modify it
+# under the terms of the GNU General Public License as published by the
+# Free Software Foundation, either version 3 of the License, or (at your
+# option) any later version, along with the "Special Exception" for use of
+# the program along with SSL, set forth below. This program is distributed
+# in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+# without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details. You should have received a copy of the GNU General Public
+# License along with this program.  If not, see
+# <http://www.gnu.org/licenses/>.
+#
+# The author can be reached by email at clearwater@metaswitch.com or by
+# post at Metaswitch Networks Ltd, 100 Church St, Enfield EN2 6BQ, UK
+#
+# Special Exception
+# Metaswitch Networks Ltd  grants you permission to copy, modify,
+# propagate, and distribute a work formed by combining OpenSSL with The
+# Software, or a work derivative of such a combination, even if such
+# copying, modification, propagation, or distribution would otherwise
+# violate the terms of the GPL. You must comply with the GPL in all
+# respects for all of the code used other than OpenSSL.
+# "OpenSSL" means OpenSSL toolkit software distributed by the OpenSSL
+# Project and licensed under the OpenSSL Licenses, or a work based on such
+# software and licensed under the OpenSSL Licenses.
+# "OpenSSL Licenses" means the OpenSSL License and Original SSLeay License
+# under which the OpenSSL Project distributes the OpenSSL toolkit software,
+# as those licenses appear in the file LICENSE-OPENSSL.
+
+. /usr/share/clearwater/utils/check-root-permissions 1
+
+if [ -z $1 ]; then
+  echo "You must specify a backup name to restore"
+  echo
+  echo "Usage: $0 <backup-name>"
+  echo
+  exit 1
+fi
+
+# Check that the specified backup does actually exist by checking that we have
+# the snapshot directory for at least one table
+
+found_backup=false
+
+for ks in /var/lib/cassandra/data/*; do
+  for tbl in $ks/*; do
+    if [ -d $tbl/snapshots/$1 ];
+    then
+      found_backup=true
+    fi;
+  done;
+done
+
+if [ "$found_backup" = false ]; then
+  echo "ERROR: Specified backup \"$1\" doesn't exist. Aborting."
+  echo
+  exit 1
+fi
+
+echo
+echo "WARNING: the backup restore process is irreversible."
+read  -n 1 -p "Delete all data and restore from \"$1\"? (Y/N)" confirmation
+echo
+
+if [ ! "$confirmation" = "Y" ]; then
+  echo "Cancelling at user request"
+  echo
+  exit 0
+fi
+
+echo "Deleting data and restoring from backup: $1"
+
+for ks in /var/lib/cassandra/data/*; do
+  for tbl in $ks/*; do
+    rm -f $tbl/*.*;
+    if [ -d $tbl/snapshots/$1 ]; then
+       cp -R $tbl/snapshots/$1/* $tbl;
+    fi;
+  done;
+done
+
+echo "Done. You must now restore backups on any other nodes that require it, then run nodetool repair."
+
