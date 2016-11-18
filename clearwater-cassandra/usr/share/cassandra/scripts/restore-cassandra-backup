@@ -32,7 +32,7 @@
 # under which the OpenSSL Project distributes the OpenSSL toolkit software,
 # as those licenses appear in the file LICENSE-OPENSSL.
 
-. /usr/share/clearwater/utils/check-root-permissions 1
+#. /usr/share/clearwater/utils/check-root-permissions 1
 
 if [ -z $1 ]; then
   echo "You must specify a backup name to restore"
