@@ -123,6 +123,7 @@ class CassandraPlugin(SynchroniserPluginBase):
         # Fill in the correct listen_address and seeds values in the yaml
         # document.
         doc["listen_address"] = self._ip
+        doc["broadcast_rpc_address"] = self._ip
 
         # Set the thrift listen address to the IPv4 or IPv6 loopback address
         # as appropriate. Note we can't use 127.0.0.1 in both cases because in
