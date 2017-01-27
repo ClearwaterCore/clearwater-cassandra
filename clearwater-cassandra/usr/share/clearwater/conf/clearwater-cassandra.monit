@@ -44,7 +44,7 @@ check process cassandra_process with pidfile /var/run/cassandra/cassandra.pid
 
   # Check the service's resource usage, and stop the process if it's too high.
   # Monit will raise an alarm when it restarts the process
-  if memory > 80% for 6 cycles then exec "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; /etc/init.d/cassandra stop'"
+  if memory > 80% for 6 cycles then exec "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; start-stop-daemon -K -p /var/run/cassandra/cassandra.pid -R TERM/30/KILL/5'"
 
 # Monitor connectivity to Cassandra ring nodes. If connectivity is lost to
 # any node issue an alarm, otherwise clear it (alarm handling is done in
@@ -72,3 +72,10 @@ check program poll_cassandra with path "/usr/share/clearwater/bin/poll_cassandra
   group cassandra
   depends on cassandra_process
   if status != 0 for 3 cycles then exec "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; /etc/init.d/cassandra stop'"
+
+# Check that cqlsh can connect to cassandra. This depends on the cassandra
+# process (and so won't run unless the cassandra process is running).
+check program poll_cqlsh with path "/usr/share/clearwater/bin/poll_cqlsh.sh" every 6 cycles
+  group cassandra
+  depends on cassandra_process
+  if status != 0 for 3 cycles then exec "/bin/bash -c '/usr/share/clearwater/bin/issue-alarm monit 4000.3; start-stop-daemon -K -p /var/run/cassandra/cassandra.pid -R TERM/30/KILL/5'"
