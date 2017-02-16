@@ -105,26 +105,29 @@ service cassandra stop | grep -v "^xss = "
 echo "Clearing commitlog..."
 rm -rf $COMMITLOG_DIR/*
 
-# The data is stored in /var/lib/cassandra/data/<KEYSPACE>/<table>-<number>.
-# The <number> is matched to the particular node - you must keep the same
-# <number> for the data folder in order for Cassandra to pick up the updated
+# The data is stored in /var/lib/cassandra/data/<KEYSPACE>/<table>-<UUID>.
+# The <UUID> is matched to the particular Cassandra cluster - you must keep the
+# same <UUID> for the data folder in order for Cassandra to pick up the updated
 # db files
 for t in $BACKUP_DIR/$BACKUP/*
 do
   TABLE=`basename $t`
   PREFIX=`echo $TABLE | cut -d - -f 1`
   TARGET=`ls $DATA_DIR/$KEYSPACE/ | grep $PREFIX-`
-  TARGET_DIR=$DATA_DIR/$KEYSPACE/$TARGET
 
-  # Delete all the .db files for the old tables
-  echo "$TABLE: Deleting old .db files..."
-  rm -rf $TARGET_DIR/*
+  if [ -n "$TARGET"]; then
+    TARGET_DIR=$DATA_DIR/$KEYSPACE/$TARGET
 
-  # Now copy across the .db files for the table (making sure to keep the
-  # existing folder names)
-  echo "$TABLE: Restoring from backup: $BACKUP"
-  cp $BACKUP_DIR/$BACKUP/$TABLE/* $TARGET_DIR
-  chown cassandra:cassandra $TARGET_DIR/*
+    # Delete all the .db files for the old tables
+    echo "$TABLE: Deleting old .db files..."
+    rm -rf $TARGET_DIR/*
+
+    # Now copy across the .db files for the table (making sure to keep the
+    # existing folder names)
+    echo "$TABLE: Restoring from backup: $BACKUP"
+    cp $BACKUP_DIR/$BACKUP/$TABLE/* $TARGET_DIR
+    chown cassandra:cassandra $TARGET_DIR/*
+  fi
 done
 
 # Start Cassandra.  We remove any xss=.., as this can be printed out by
