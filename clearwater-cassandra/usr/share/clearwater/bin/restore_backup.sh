@@ -115,7 +115,7 @@ do
   PREFIX=`echo $TABLE | cut -d - -f 1`
   TARGET=`ls $DATA_DIR/$KEYSPACE/ | grep $PREFIX-`
 
-  if [ -n "$TARGET"]; then
+  if [ -n "$TARGET" ]; then
     TARGET_DIR=$DATA_DIR/$KEYSPACE/$TARGET
 
     # Delete all the .db files for the old tables
