@@ -40,6 +40,8 @@
 # Getting the uptime can fail if the cassandra process fails - this is caught
 # by the monit script.
 
+. /usr/share/clearwater/utils/check-root-permissions 1
+
 [ $# -le 1 ] || { echo "Usage: poll_cassandra [--no-grace-period] (defaults to a two minute grace period)" >&2 ; exit 2 ; }
 
 if [ -z "$1" ]; then
@@ -60,6 +62,6 @@ fi
 rc=$?
 if [[ $rc != 0 ]]
 then
-  nodetool enablethrift
+  /usr/share/clearwater/bin/run-in-signaling-namespace nodetool enablethrift
 fi
 exit $rc

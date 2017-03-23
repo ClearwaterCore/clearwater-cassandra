@@ -23,25 +23,12 @@ WAIT_FOR_START=10
 CASSANDRA_HOME=/usr/share/cassandra
 FD_LIMIT=100000
 
-[ -e /usr/share/cassandra/apache-cassandra.jar ] || exit 0
-[ -e /etc/cassandra/cassandra.yaml ] || exit 0
-[ -e /etc/cassandra/cassandra-env.sh ] || exit 0
+[ -e /usr/share/cassandra/apache-cassandra.jar ] || ( echo "Exiting: apache-cassandra.jar is missing" && exit 0 )
+[ -e /etc/cassandra/cassandra.yaml ] || ( echo "Exiting: cassandra.yaml is missing" && exit 0 )
+[ -e /etc/cassandra/cassandra-env.sh ] || ( echo "Exiting: cassandra-env.sh is missing" && exit 0 )
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
-
-# Read Cassandra environment file.
-. /etc/cassandra/cassandra-env.sh
-
-if [ -z "$JVM_OPTS" ]; then
-    echo "Initialization failed; \$JVM_OPTS not set!" >&2
-    exit 3
-fi
-
-# Add JNA to EXTRA_CLASSPATH
-export EXTRA_CLASSPATH="/usr/share/java/jna.jar:$EXTRA_CLASSPATH"
-
-export JVM_OPTS
 
 # Export JAVA_HOME, if set.
 [ -n "$JAVA_HOME" ] && export JAVA_HOME
@@ -60,7 +47,7 @@ export JVM_OPTS
 # process is not running but the pidfile exists (to match the exit codes for
 # the "status" command; see LSB core spec 3.1, section 20.2)
 #
-CMD_PATT="cassandra.+CassandraDaemon"
+CMD_PATT="Dcassandra-pidfile=.*cassandra\.pid"
 is_running()
 {
     if [ -f $PIDFILE ]; then
@@ -91,8 +78,6 @@ do_start()
     [ -e `dirname "$PIDFILE"` ] || \
         install -d -ocassandra -gcassandra -m755 `dirname $PIDFILE`
 
-
-
     /usr/share/clearwater/bin/run-in-signaling-namespace start-stop-daemon -S -c cassandra -a /usr/sbin/cassandra -q -p "$PIDFILE" -t >/dev/null || return 1
 
     /usr/share/clearwater/bin/run-in-signaling-namespace start-stop-daemon -S -c cassandra -a /usr/sbin/cassandra -b -p "$PIDFILE" -- \
@@ -115,6 +100,24 @@ do_stop()
     rm -f "$PIDFILE"
     return $RET
 }
+
+# There should only be at most one cassandra process, and it should match
+# what we have in /var/run/cassandra/cassandra.pid.
+
+# First find the pids of potential cassandra processes
+cassandra_process_pids=$(pgrep -f CassandraDaemon)
+# Check that anything we find is being run by the cassandra user, so that we
+# aren't too aggressive or wide-reaching in our checks
+for pid in $cassandra_process_pids ; do
+  if (ps -u cassandra | grep $pid >/dev/null) ; then
+    # Check the process matches the pidfile. If it doesn't we have
+    # found a leaked process. Log, and kill the leaked process.
+    if [ $pid -ne $(cat $PIDFILE) ] ; then
+      logger -p daemon.error -t $NAME Found leaked cassandra $pid \(correct is $(cat $PIDFILE)\) - killing $pid
+      kill -9 $pid
+    fi
+  fi
+done
 
 case "$1" in
   start)

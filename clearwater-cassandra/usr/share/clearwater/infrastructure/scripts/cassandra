@@ -36,20 +36,10 @@
 
 . /etc/clearwater/config
 
-TEMPLATE_IPV4_SECTION=""
 TEMPLATE_HEAPSIZE_SECTION=""
 
 TEMPLATE_FILE=/usr/share/clearwater/cassandra/cassandra-env.sh.template
 new_file=$(mktemp)
-
-# If we're using IPv6 addresses we shouldn't tell the JVM to prefer
-# IPv4 addresses (otherwise cassandra won't be able to start). This is
-# controlled via the preferIPv4Stack option in cassandra-env.sh.
-
-if ! /usr/share/clearwater/bin/is-address-ipv6 $local_ip
-then
-  TEMPLATE_IPV4_SECTION='JVM_OPTS="$JVM_OPTS -Djava.net.preferIPv4Stack=true"'
-fi
 
 # On AIO nodes and in containers, we want to restrict Cassandra's memory usage,
 # as the system is shared with more processes, and Cassandra's approach of
@@ -61,7 +51,6 @@ then
 fi
 
 cat $TEMPLATE_FILE |\
-  sed "s/<<<TEMPLATE_IPV4_SECTION>>>/$TEMPLATE_IPV4_SECTION/" |\
   sed "s/<<<TEMPLATE_HEAPSIZE_SECTION>>>/$TEMPLATE_HEAPSIZE_SECTION/"\
   > $new_file
 
