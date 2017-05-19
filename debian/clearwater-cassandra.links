@@ -1,0 +1,2 @@
+/usr/share/clearwater/bin/update_cassandra_strategy /usr/bin/cw-update_cassandra_strategy
+/usr/share/clearwater/bin/remove_site_from_cassandra /usr/bin/cw-remove_site_from_cassandra
