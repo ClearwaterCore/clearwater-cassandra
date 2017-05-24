@@ -7,6 +7,7 @@ DEB_COMPONENT := clearwater-cassandra
 DEB_MAJOR_VERSION ?= 1.0${DEB_VERSION_QUALIFIER}
 DEB_NAMES := clearwater-cassandra
 DEB_ARCH := all
+ROOT ?= ${PWD}
 
 include build-infra/cw-deb.mk
 
