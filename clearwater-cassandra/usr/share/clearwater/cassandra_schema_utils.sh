@@ -17,21 +17,26 @@ replication_factor=${replication_factor:-2}
 # Cassandra schemas. This file gets dotted in by the schema creation scripts.
 replication_str="{'class': 'SimpleStrategy', 'replication_factor': $replication_factor}"
 
-if [ -n "$remote_site_name" ] && [ -z "$remote_site_names" ]
+if [ -n "$remote_site_name" ] && [ -z "$site_names" ]
 then
-  remote_site_names=$remote_site_name
+  site_names=$remote_site_name
 fi
 
-# If local_site_name and remote_site_names are set then this is a GR
+# If local_site_name and site_names are set then this is a GR
 # deployment. Set the replication strategy to NetworkTopologyStrategy and
 # define the sites.
-if [ -n "$local_site_name" ] && [ -n "$remote_site_names" ]
+if [ -n "$local_site_name" ] && [ -n "$site_names" ]
 then
-  IFS=',' read -a remote_site_names_array <<< "$remote_site_names"
+  IFS=',' read -a site_names_array <<< "$site_names"
   replication_str="{'class': 'NetworkTopologyStrategy', '$local_site_name': $replication_factor"
-  for remote_site in "${remote_site_names_array[@]}"
+  for site in "${site_names_array[@]}"
   do
-    replication_str+=", '$remote_site': $replication_factor"
+    if [ $local_site_name == $site ];
+    then
+      # Don't repeat the local site if it's in site_names
+      continue
+    fi
+    replication_str+=", '$site': $replication_factor"
   done
   replication_str+="}"
 fi
